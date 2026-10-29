@@ -42,21 +42,20 @@
     "orm",
     "jwt",
     "oauth",
-    "zero-server",
     "zero-server"
   ],
   "author": "Anthony Wiedman",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/molexxxx/zero-server.git"
+    "url": "git+https://github.com/molexxxx/zero-server-node.git"
   },
   "bugs": {
-    "url": "https://github.com/molexxxx/zero-server/issues"
+    "url": "https://github.com/molexxxx/zero-server-node/issues"
   },
   "homepage": "https://z-server.dev",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
