@@ -235,6 +235,22 @@ describe('JWT Core: verify()', () =>
         try { jwtVerify(token, HMAC_SECRET, { algorithms: ['HS512'] }); } catch (e) { expect(e.code).toBe('ALGORITHM_NOT_ALLOWED'); }
     });
 
+    it('RFC 8725 3.1: each key MUST be used with exactly one algorithm (HS256 signed with an RSA public key is rejected)', () =>
+    {
+        const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+        const payload = Buffer.from(JSON.stringify({ sub: 'attacker', iat: Math.floor(Date.now() / 1000) })).toString('base64url');
+        const signature = crypto.createHmac('sha256', RSA_PUBLIC).update(`${header}.${payload}`).digest('base64url');
+        const forged = `${header}.${payload}.${signature}`;
+        expect(() => jwtVerify(forged, RSA_PUBLIC)).toThrow('does not match');
+        try { jwtVerify(forged, RSA_PUBLIC); } catch (e) { expect(e.code).toBe('ALGORITHM_NOT_ALLOWED'); }
+    });
+
+    it('RFC 8725 3.1: each key MUST be used with exactly one algorithm (RS256 checked against an HMAC secret is rejected)', () =>
+    {
+        const token = jwtSign({ sub: '42' }, RSA_PRIVATE, { algorithm: 'RS256' });
+        expect(() => jwtVerify(token, HMAC_SECRET)).toThrow('does not match');
+    });
+
     it('allows ignoreExpiration', () =>
     {
         const token = jwtSign({}, HMAC_SECRET, { expiresIn: -3600 });
