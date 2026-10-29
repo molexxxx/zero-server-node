@@ -1882,10 +1882,12 @@ describe('BaseCall deadline & cancel', () =>
     {
         const stream = mockStream();
         stream.end = vi.fn(() => { throw new Error('fail'); });
+        stream.destroy = vi.fn();
         const call = new UnaryCall(stream, methodDef, schema.messages, new Metadata());
         call.sendMetadata();
         expect(() => call.sendStatus(GrpcStatus.OK)).not.toThrow();
-        expect(stream.close).toHaveBeenCalled();
+        expect(stream.destroy).toHaveBeenCalled();
+        expect(stream.close).not.toHaveBeenCalled();
     });
 
     it('trailingMetadata is included in status', () =>
@@ -2501,17 +2503,20 @@ describe('GrpcClient error paths integration', () =>
         } finally { client.close(); }
     });
 
-    it('server stream error is received by client as trailers-only', async () =>
+    it('server stream delivers data then rejects with the trailer status', async () =>
     {
         const schema = parseProto(PROTO);
         const client = new GrpcClient(`http://localhost:${port}`, schema, 'Svc');
         try {
-            // Server writes one item then sends error
-            // The error comes via trailers after data, client gets at least one item
             const stream = client.serverStream('ErrorStream', { name: 'test' });
             const items = [];
-            for await (const item of stream) items.push(item);
-            expect(items.length).toBeGreaterThanOrEqual(1);
+            let err = null;
+            try { for await (const item of stream) items.push(item); }
+            catch (e) { err = e; }
+            expect(items).toHaveLength(1);
+            expect(err).toBeTruthy();
+            expect(err.grpcCode).toBe(GrpcStatus.INTERNAL);
+            expect(err.message).toBe('stream broke');
         } finally { client.close(); }
     });
 
@@ -2527,7 +2532,7 @@ describe('GrpcClient error paths integration', () =>
         } finally { await new Promise(r => setTimeout(r, 50)); client.close(); }
     });
 
-    it('bidi stream receives data then ends', async () =>
+    it('bidi stream delivers data then rejects with the trailer status', async () =>
     {
         const schema = parseProto(PROTO);
         const client = new GrpcClient(`http://localhost:${port}`, schema, 'Svc');
@@ -2536,9 +2541,13 @@ describe('GrpcClient error paths integration', () =>
             bidi.write({ id: 1, value: 'hello' });
             bidi.end();
             const items = [];
-            for await (const item of bidi) items.push(item);
-            // Server wrote one item then errored, client got at least the data
-            expect(items.length).toBeGreaterThanOrEqual(1);
+            let err = null;
+            try { for await (const item of bidi) items.push(item); }
+            catch (e) { err = e; }
+            expect(items).toHaveLength(1);
+            expect(err).toBeTruthy();
+            expect(err.grpcCode).toBe(GrpcStatus.ABORTED);
+            expect(err.message).toBe('bidi abort');
         } finally { client.close(); }
     });
 
@@ -5014,8 +5023,7 @@ describe('gRPC stress & protocol conformance', () =>
                 call.on('error', () => {});
                 call.write({ id: 1, value: 'ok-1' });
                 call.write({ id: 2, value: 'ok-2' });
-                call.sendMetadata();
-                call.stream.close(http2.constants.NGHTTP2_INTERNAL_ERROR);
+                call.stream.destroy(new Error('mid-stream failure'));
             },
             async ThrowMidStream(call) {
                 call.write({ id: 1, value: 'before-throw' });
@@ -5133,8 +5141,8 @@ describe('gRPC stress & protocol conformance', () =>
             let err = null;
             try { for await (const item of stream) items.push(item); }
             catch (e) { err = e; }
-            // RST_STREAM causes a hard error or at least stops the stream
-            expect(err !== null || items.length <= 2).toBe(true);
+            expect(err).toBeTruthy();
+            expect(items.length).toBeLessThanOrEqual(2);
         } finally { client.close(); }
     });
 
@@ -5423,5 +5431,194 @@ describe('gRPC schema version compatibility', () =>
             expect(res.seq).toBe(30);
             expect(res.extra).toBe('v2-only-field');
         } finally { client.close(); }
+    });
+});
+
+// -- Status trailers over the HTTP/2 compat server --------------
+
+describe('gRPC status trailers', () =>
+{
+    const PROTO = `
+        syntax = "proto3";
+        package trailers;
+        message Req { string name = 1; }
+        message Res { string msg = 1; }
+        service Svc {
+            rpc Hi (Req) returns (Res);
+            rpc Fail (Req) returns (stream Res);
+        }
+    `;
+
+    let app, server, port, raw;
+
+    beforeAll(async () =>
+    {
+        const schema = parseProto(PROTO);
+        app = createApp();
+        app.grpc(schema, 'Svc', {
+            Hi(call) { return { msg: 'hi ' + call.request.name }; },
+            Fail(call)
+            {
+                call.write({ msg: 'one' });
+                call.sendError(GrpcStatus.FAILED_PRECONDITION, 'bad 100% state');
+            },
+        });
+        await new Promise((resolve) =>
+        {
+            server = app.listen(0, { http2: true }, () =>
+            {
+                port = server.address().port;
+                resolve();
+            });
+        });
+
+        raw = http2.createServer();
+        raw.on('stream', (stream, headers) =>
+        {
+            stream.on('error', () => {});
+            stream.on('data', () => {});
+            stream.on('end', () =>
+            {
+                if (headers[':path'].endsWith('/Fail'))
+                {
+                    stream.respond({ ':status': 200, 'content-type': 'application/grpc+proto', 'grpc-status': '13', 'grpc-message': '%E0%A4%A' }, { endStream: true });
+                    return;
+                }
+                stream.respond({ ':status': 200, 'content-type': 'application/grpc+proto' });
+                stream.end(frameEncode(encode({ msg: 'no status' }, parseProto(PROTO).messages.Res, parseProto(PROTO).messages)));
+            });
+        });
+        await new Promise((resolve) => raw.listen(0, resolve));
+    });
+
+    afterAll(async () =>
+    {
+        await new Promise((r) => server.close(r));
+        await new Promise((r) => raw.close(r));
+    });
+
+    it('sends grpc-status in trailers after a unary response body', async () =>
+    {
+        const session = http2.connect(`http://localhost:${port}`);
+        try {
+            const trailers = await new Promise((resolve, reject) =>
+            {
+                const req = session.request({
+                    ':method': 'POST',
+                    ':path': '/trailers.Svc/Hi',
+                    'content-type': 'application/grpc+proto',
+                    'te': 'trailers',
+                });
+                req.on('trailers', resolve);
+                req.on('error', reject);
+                req.on('data', () => {});
+                req.end(frameEncode(encode({ name: 'x' }, parseProto(PROTO).messages.Req, parseProto(PROTO).messages)));
+            });
+            expect(trailers['grpc-status']).toBe('0');
+        } finally { session.close(); }
+    });
+
+    it('works when app.grpc() is registered after listen()', async () =>
+    {
+        const lateApp = createApp();
+        const lateServer = await new Promise((resolve) =>
+        {
+            const s = lateApp.listen(0, { http2: true }, () => resolve(s));
+        });
+        lateApp.grpc(parseProto(PROTO), 'Svc', { Hi(call) { return { msg: 'hi ' + call.request.name }; } });
+        const client = new GrpcClient(`http://localhost:${lateServer.address().port}`, parseProto(PROTO), 'Svc');
+        try {
+            expect(await client.call('Hi', { name: 'late' })).toEqual({ msg: 'hi late' });
+        } finally {
+            client.close();
+            await new Promise((r) => lateServer.close(r));
+        }
+    });
+
+    it('decodes a percent-encoded grpc-message from trailers after data', async () =>
+    {
+        const client = new GrpcClient(`http://localhost:${port}`, parseProto(PROTO), 'Svc');
+        try {
+            const items = [];
+            let err = null;
+            try { for await (const item of client.serverStream('Fail', { name: 'x' })) items.push(item); }
+            catch (e) { err = e; }
+            expect(items).toEqual([{ msg: 'one' }]);
+            expect(err.grpcCode).toBe(GrpcStatus.FAILED_PRECONDITION);
+            expect(err.message).toBe('bad 100% state');
+        } finally { client.close(); }
+    });
+
+    it('rejects a unary response that ends without grpc-status', async () =>
+    {
+        const client = new GrpcClient(`http://localhost:${raw.address().port}`, parseProto(PROTO), 'Svc');
+        try {
+            await expect(client.call('Hi', { name: 'x' })).rejects.toMatchObject({ grpcCode: GrpcStatus.INTERNAL });
+        } finally { client.close(); }
+    });
+
+    it('keeps a malformed grpc-message as raw text instead of throwing', async () =>
+    {
+        const client = new GrpcClient(`http://localhost:${raw.address().port}`, parseProto(PROTO), 'Svc');
+        try {
+            let err = null;
+            try { for await (const _ of client.serverStream('Fail', { name: 'x' })) {} }
+            catch (e) { err = e; }
+            expect(err.grpcCode).toBe(GrpcStatus.INTERNAL);
+            expect(err.message).toBe('%E0%A4%A');
+        } finally { client.close(); }
+    });
+});
+
+// -- Transport errors must not crash the host process ------------
+
+describe('GrpcClient transport errors', () =>
+{
+    const PROTO = `
+        syntax = "proto3";
+        package transport;
+        message Req { string name = 1; }
+        message Res { string msg = 1; }
+        service Svc { rpc Hi (Req) returns (Res); }
+    `;
+
+    function fakeSession()
+    {
+        const session = new (require('events').EventEmitter)();
+        session.request = () =>
+        {
+            const stream = new (require('events').EventEmitter)();
+            stream.write = () => true;
+            stream.end = () => {};
+            stream.close = () => {};
+            return stream;
+        };
+        session.close = vi.fn();
+        return session;
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('a session error with no error listener does not throw', () =>
+    {
+        const session = fakeSession();
+        vi.spyOn(http2, 'connect').mockReturnValue(session);
+        const client = new GrpcClient('http://localhost:1', parseProto(PROTO), 'Svc', { keepAlive: false });
+        client._connect();
+        expect(() => session.emit('error', new Error('connect ECONNRESET'))).not.toThrow();
+        client.close();
+    });
+
+    it('a session error is forwarded when an error listener exists', () =>
+    {
+        const session = fakeSession();
+        vi.spyOn(http2, 'connect').mockReturnValue(session);
+        const client = new GrpcClient('http://localhost:1', parseProto(PROTO), 'Svc', { keepAlive: false });
+        const seen = [];
+        client.on('error', (err) => seen.push(err.message));
+        client._connect();
+        session.emit('error', new Error('connect ECONNRESET'));
+        expect(seen).toEqual(['connect ECONNRESET']);
+        client.close();
     });
 });
