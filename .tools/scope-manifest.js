@@ -440,7 +440,7 @@ const scopes = [
             'Graceful shutdown with signal handlers, in-flight request draining, automatic ' +
             'WebSocket / SSE / database cleanup, plus multi-worker clustering with ' +
             'auto-respawn and exponential backoff.',
-        exports: ['LifecycleManager', 'LIFECYCLE_STATE', 'ClusterManager', 'cluster'],
+        exports: ['LifecycleManager', 'LIFECYCLE_STATE', 'ClusterManager', 'cluster', 'clusterize'],
 
         // Both lifecycle.js and cluster.js use require('./debug') - the bundled
         // debug.js at packages/lifecycle/lib/debug.js satisfies that path.
@@ -459,6 +459,7 @@ const scopes = [
             "    LIFECYCLE_STATE:  lifecycle.LIFECYCLE_STATE,",
             "    ClusterManager:   cluster.ClusterManager,",
             "    cluster:          cluster.clusterize,",
+            "    clusterize:       cluster.clusterize,",
             "};",
         ].join('\n') + '\n',
     },
@@ -529,7 +530,7 @@ const scopes = [
             'Every typed error class shipped by the SDK: HTTP status errors, framework ' +
             'errors (configuration / middleware / routing / timeout), ORM errors (database ' +
             '/ connection / migration / transaction / query / adapter / cache), and the ' +
-            'Phase 4 errors (tenancy / audit / plugin / procedure). Plus the `createError` ' +
+            'ORM enterprise errors (tenancy / audit / plugin / procedure). Plus the `createError` ' +
             'factory, `isHttpError` guard, and the lightweight `debug` logger.',
         exports: [
             'HttpError', 'BadRequestError', 'UnauthorizedError', 'ForbiddenError',

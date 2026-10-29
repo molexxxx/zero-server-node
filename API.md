@@ -249,7 +249,7 @@ npm install @zero-server/sdk
 
 
 > **Tip:** `@zero-server/sdk` has zero runtime dependencies - npm install is all you need.
-> **Tip:** Requires Node.js 18+ (uses crypto.randomUUID, structuredClone, etc.).
+> **Tip:** Requires Node.js 20+.
 > **Tip:** TypeScript definitions are bundled inside the SDK and inside every scoped package.
 
 
@@ -2408,7 +2408,7 @@ Pluggable Selective Forwarding Unit (SFU) adapter interface. The signaling hub s
 | `pipeToRouter` | `pipeToRouter(opts)` | Pipe a producer from this adapter's local router into another router (possibly on a remote SFU node). Returns `{ pipeProducerId, pipeConsumerId, localRouterId, remoteRouterId }`. |
 
 
-#### Targeted stats (Phase 2 surface; coarse stats() remains for back-compat)
+#### Targeted stats (coarse stats() remains for back-compat)
 
 | Method | Signature | Description |
 |---|---|---|
@@ -5208,6 +5208,7 @@ JSON file-backed database adapter. Persists data to JSON files on disk - one fil
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `dir` | string | `-` | Directory to store JSON files. Created if needed. |
+| `directory` | string | `-` | Alias for `dir`. |
 | `pretty` | boolean | `true` | Pretty-print JSON files. |
 | `flushInterval` | number | `50` | Debounce interval in ms for writes. |
 | `autoFlush` | boolean | `true` | Automatically flush writes (set false for manual flush()). |
@@ -6643,7 +6644,7 @@ HTTP error classes with status codes, error codes, and structured details. Every
 | `CacheError` | `new CacheError([message], [opts])` | Cache error - caching layer failures. |
 
 
-#### Phase 4 Error Classes
+#### ORM enterprise error classes
 
 | Method | Signature | Description |
 |---|---|---|

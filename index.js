@@ -180,7 +180,7 @@ module.exports = {
     QueryProfiler,
     /** @see module:orm/replicas */
     ReplicaManager,
-    // ORM: Advanced Features (Phase 3)
+    // ORM: Advanced Features
     /** @see module:orm/views */
     DatabaseView,
     /** @see module:orm/search */
@@ -191,7 +191,7 @@ module.exports = {
     EARTH_RADIUS_KM,
     /** @see module:orm/geo */
     EARTH_RADIUS_MI,
-    // ORM: Enterprise Infrastructure (Phase 4)
+    // ORM: Enterprise Infrastructure
     /** @see module:orm/tenancy */
     TenantManager,
     /** @see module:orm/audit */
@@ -235,7 +235,7 @@ module.exports = {
     QueryError: errors.QueryError,
     AdapterError: errors.AdapterError,
     CacheError: errors.CacheError,
-    // Phase 4 errors
+    // ORM enterprise errors
     TenancyError: errors.TenancyError,
     AuditError: errors.AuditError,
     PluginError: errors.PluginError,
@@ -267,6 +267,8 @@ module.exports = {
     ClusterManager,
     /** @see module:cluster */
     cluster: clusterize,
+    /** @see module:cluster */
+    clusterize,
     // Observability - Structured Logging
     /** @see module:observe/logger */
     Logger,
@@ -313,7 +315,7 @@ module.exports = {
     eventLoopCheck,
     /** @see module:observe/health */
     diskSpaceCheck,
-    // Authentication & Sessions (Phase 3)
+    // Authentication & Sessions
     /** @see module:auth/jwt */
     jwt,
     /** @see module:auth/jwt */

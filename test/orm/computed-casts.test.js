@@ -1,5 +1,5 @@
 /**
- * Phase 3 - Computed & Virtual Columns, Attribute Casting, Accessors/Mutators
+ * Computed & Virtual Columns, Attribute Casting, Accessors/Mutators
  */
 const { Database, Model, TYPES } = require('../../lib/orm');
 

@@ -937,7 +937,7 @@
 					]
 				},
 				{
-					"group": "Phase 4 Error Classes",
+					"group": "ORM enterprise error classes",
 					"methods": [
 						{
 							"method": "TenancyError",

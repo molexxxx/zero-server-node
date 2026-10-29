@@ -1,5 +1,5 @@
 // Type definitions for zero-server
-// Project: https://github.com/molexxxx/zero-server
+// Project: https://github.com/molexxxx/zero-server-node
 // Definitions by: zero-server contributors
 
 /// <reference types="node" />
@@ -90,7 +90,7 @@ export {
     Seeder, SeederRunner, Factory, Fake,
     QueryProfiler, QueryProfilerOptions, ProfiledQuery, N1Detection, ProfilerMetrics,
     ReplicaManager, ReplicaManagerOptions, HealthCheckResult,
-    // Phase 4
+    // ORM enterprise
     TenantManager, TenantManagerOptions, TenantMiddlewareOptions,
     AuditLog, AuditLogOptions, AuditEntry, AuditTrailOptions, AuditMiddlewareOptions,
     PluginManager, PluginDefinition, PluginInfo,
@@ -267,7 +267,7 @@ declare const zeroServer: {
     QueryError: typeof QueryError;
     AdapterError: typeof AdapterError;
     CacheError: typeof CacheError;
-    // Phase 4 errors
+    // ORM enterprise errors
     TenancyError: typeof TenancyError;
     AuditError: typeof AuditError;
     PluginError: typeof PluginError;
@@ -286,7 +286,7 @@ declare const zeroServer: {
     Fake: typeof Fake;
     QueryProfiler: typeof QueryProfiler;
     ReplicaManager: typeof ReplicaManager;
-    // ORM Enterprise (Phase 4)
+    // ORM Enterprise
     TenantManager: typeof TenantManager;
     AuditLog: typeof AuditLog;
     PluginManager: typeof PluginManager;
@@ -307,6 +307,7 @@ declare const zeroServer: {
     LIFECYCLE_STATE: typeof LIFECYCLE_STATE;
     ClusterManager: typeof ClusterManager;
     cluster: typeof clusterize;
+    clusterize: typeof clusterize;
     // Observability - Structured Logging
     Logger: typeof Logger;
     structuredLogger: typeof structuredLogger;
@@ -332,7 +333,7 @@ declare const zeroServer: {
     memoryCheck: typeof memoryCheck;
     eventLoopCheck: typeof eventLoopCheck;
     diskSpaceCheck: typeof diskSpaceCheck;
-    // Authentication & Sessions (Phase 3)
+    // Authentication & Sessions
     jwt: typeof jwt;
     jwtSign: typeof jwtSign;
     jwtVerify: typeof jwtVerify;

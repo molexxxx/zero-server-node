@@ -7,6 +7,7 @@ const path       = require('path');
 const os         = require('os');
 const { EventEmitter } = require('events');
 const { PassThrough }  = require('stream');
+const { waitFor }      = require('../_helpers');
 
 const Request  = require('../../lib/http/request');
 const Response = require('../../lib/http/response');
@@ -1428,65 +1429,50 @@ describe('Response - sendFile() opts.headers and stream error', () =>
         });
     });
 
-    it('stream error without callback sets statusCode 500 (lines 350-351)', () =>
+    it('stream error without callback sets statusCode 500 (lines 350-351)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            // Intercept createReadStream to inject a stream that errors
-            const origCreateReadStream = fs.createReadStream;
-            const { Readable } = require('stream');
-            const fakeStream = new Readable({ read() {} });
-            fs.createReadStream = (...args) => {
-                fs.createReadStream = origCreateReadStream; // restore immediately
-                return fakeStream;
-            };
+        // Intercept createReadStream to inject a stream that errors
+        const origCreateReadStream = fs.createReadStream;
+        const { Readable } = require('stream');
+        const fakeStream = new Readable({ read() {} });
+        fs.createReadStream = (...args) => {
+            fs.createReadStream = origCreateReadStream; // restore immediately
+            return fakeStream;
+        };
 
-            const raw = makeStreamableRaw();
-            const res = new Response(raw);
-            raw.resume(); // drain so pipe doesn't back-pressure
-            res.sendFile(tmpFile);
+        const raw = makeStreamableRaw();
+        const res = new Response(raw);
+        raw.resume(); // drain so pipe doesn't back-pressure
+        res.sendFile(tmpFile);
 
-            // Trigger error on the fake stream after stat passes
-            setTimeout(() =>
-            {
-                fakeStream.emit('error', new Error('injected read error'));
-                setTimeout(() =>
-                {
-                    // The error handler (no cb) sets 500 and calls raw.end()
-                    expect(raw.statusCode).toBe(500);
-                    resolve();
-                }, 10);
-            }, 20);
-        });
+        // sendFile only opens the stream once stat has passed
+        await waitFor(() => fs.createReadStream === origCreateReadStream);
+        fakeStream.emit('error', new Error('injected read error'));
+        // The error handler (no cb) sets 500 and calls raw.end()
+        await waitFor(() => raw.statusCode === 500);
     });
 
-    it('stream error WITH callback calls cb(err) (lines 350)', () =>
+    it('stream error WITH callback calls cb(err) (lines 350)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const origCreateReadStream = fs.createReadStream;
-            const { Readable } = require('stream');
-            const fakeStream2 = new Readable({ read() {} });
-            fs.createReadStream = (...args) => {
-                fs.createReadStream = origCreateReadStream;
-                return fakeStream2;
-            };
+        const origCreateReadStream = fs.createReadStream;
+        const { Readable } = require('stream');
+        const fakeStream2 = new Readable({ read() {} });
+        fs.createReadStream = (...args) => {
+            fs.createReadStream = origCreateReadStream;
+            return fakeStream2;
+        };
 
-            const raw = makeStreamableRaw();
-            const res = new Response(raw);
-            raw.resume();
-            res.sendFile(tmpFile, {}, (err) =>
-            {
-                expect(err).toBeInstanceOf(Error);
-                expect(err.message).toContain('injected cb error');
-                resolve();
-            });
+        const raw = makeStreamableRaw();
+        const res = new Response(raw);
+        raw.resume();
+        const cbErr = new Promise((resolve) => res.sendFile(tmpFile, {}, resolve));
 
-            setTimeout(() =>
-            {
-                fakeStream2.emit('error', new Error('injected cb error'));
-            }, 20);
-        });
+        await waitFor(() => fs.createReadStream === origCreateReadStream);
+        fakeStream2.emit('error', new Error('injected cb error'));
+
+        const err = await cbErr;
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toContain('injected cb error');
     });
 });
 
@@ -1614,39 +1600,36 @@ describe('Response - sendFile() error paths with callbacks', () =>
         });
     });
 
-    it('stream error no-cb path - sets statusCode 500 (L350 FALSE branch)', () =>
+    it('stream error no-cb path - sets statusCode 500 (L350 FALSE branch)', async () =>
     {
-        return new Promise((resolve) =>
+        const { Readable } = require('stream');
+        const fakeStream = new Readable({ read() {} });
+
+        const origCreate = fs.createReadStream;
+        fs.createReadStream = (...args) =>
         {
-            const { Readable } = require('stream');
-            const fakeStream = new Readable({ read() {} });
+            fs.createReadStream = origCreate;
+            return fakeStream;
+        };
 
-            const origCreate = fs.createReadStream;
-            fs.createReadStream = (...args) =>
-            {
-                fs.createReadStream = origCreate;
-                return fakeStream;
-            };
+        const tmpF = path.join(os.tmpdir(), 'zero-err-nocb-' + process.pid + '.txt');
+        fs.writeFileSync(tmpF, 'content');
 
-            const tmpF = path.join(os.tmpdir(), 'zero-err-nocb-' + process.pid + '.txt');
-            fs.writeFileSync(tmpF, 'content');
+        const raw = makeStreamableRaw3();
+        const res = new Response(raw);
+        raw.resume();
+        res.sendFile(tmpF);
 
-            const raw = makeStreamableRaw3();
-            const res = new Response(raw);
-            raw.resume();
-            res.sendFile(tmpF);
-
-            setTimeout(() =>
-            {
-                fakeStream.emit('error', new Error('injected no-cb error'));
-                setTimeout(() =>
-                {
-                    expect(raw.statusCode).toBe(500);
-                    try { fs.unlinkSync(tmpF); } catch {}
-                    resolve();
-                }, 10);
-            }, 20);
-        });
+        try
+        {
+            await waitFor(() => fs.createReadStream === origCreate);
+            fakeStream.emit('error', new Error('injected no-cb error'));
+            await waitFor(() => raw.statusCode === 500);
+        }
+        finally
+        {
+            try { fs.unlinkSync(tmpF); } catch {}
+        }
     });
 });
 

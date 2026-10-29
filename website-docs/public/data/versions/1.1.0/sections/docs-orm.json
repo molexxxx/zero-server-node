@@ -9548,6 +9548,12 @@
 					"notes": "Directory to store JSON files. Created if needed."
 				},
 				{
+					"option": "directory",
+					"type": "string",
+					"default": "-",
+					"notes": "Alias for `dir`."
+				},
+				{
 					"option": "pretty",
 					"type": "boolean",
 					"default": "true",

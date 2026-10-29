@@ -1,5 +1,5 @@
 /**
- * Phase 3 - FullTextSearch tests
+ * FullTextSearch tests
  */
 const { Database, Model, FullTextSearch } = require('../../lib/orm');
 

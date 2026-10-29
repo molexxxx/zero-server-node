@@ -1,5 +1,5 @@
 /**
- * Phase 3 - GeoQuery tests
+ * GeoQuery tests
  */
 const { Database, Model, GeoQuery, EARTH_RADIUS_KM, EARTH_RADIUS_MI } = require('../../lib/orm');
 

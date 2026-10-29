@@ -1,5 +1,5 @@
 /**
- * Phase 3 - Advanced Relationships
+ * Advanced Relationships
  * Polymorphic, has-many-through, self-referential, tree structures
  */
 const { Database, Model, TYPES } = require('../../lib/orm');

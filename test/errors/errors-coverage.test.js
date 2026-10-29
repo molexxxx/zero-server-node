@@ -1,5 +1,5 @@
 /**
- * Coverage tests for lib/errors.js - targets Phase 4 error constructors
+ * Coverage tests for lib/errors.js - targets the ORM enterprise error constructors
  * (TenancyError, AuditError, PluginError, ProcedureError), HttpError edge
  * branches, and ORM error subclass property branches.
  */
@@ -21,7 +21,7 @@ const {
 } = require('../../lib/errors');
 
 // =========================================================
-// Phase 4 Error Classes - full property coverage
+// ORM enterprise error classes - full property coverage
 // =========================================================
 
 describe('TenancyError', () =>

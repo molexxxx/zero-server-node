@@ -21,7 +21,7 @@ module.exports = [
 				exampleLang: 'bash',
 				tips: [
 					'`@zero-server/sdk` has zero runtime dependencies - npm install is all you need.',
-					'Requires Node.js 18+ (uses crypto.randomUUID, structuredClone, etc.).',
+					'Requires Node.js 20+.',
 					'TypeScript definitions are bundled inside the SDK and inside every scoped package.',
 				],
 			},

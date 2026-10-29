@@ -49,6 +49,7 @@ beforeAll(() => {
         try {
             const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
             if (pkg.version !== PKG.version) return true;
+            if (!pkg.engines || pkg.engines.node !== PKG.engines.node) return true;
         } catch { return true; }
         return false;
     });
@@ -113,7 +114,7 @@ describe('scoped packages - generated stubs', () => {
                 expect(pkg.version).toBe(PKG.version);
                 expect(pkg.main).toBe('./index.js');
                 expect(pkg.types).toBe('./index.d.ts');
-                expect(pkg.engines && pkg.engines.node).toBe('>=18.0.0');
+                expect(pkg.engines && pkg.engines.node).toBe(PKG.engines.node);
                 // SDK must NOT be a hard runtime dependency anymore - it is an
                 // optional peerDependency used only for TypeScript types.
                 expect(pkg.dependencies && pkg.dependencies['@zero-server/sdk']).toBeUndefined();

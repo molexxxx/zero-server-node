@@ -1,5 +1,5 @@
 /**
- * Phase 4 - StoredProcedure, StoredFunction, TriggerManager tests
+ * StoredProcedure, StoredFunction, TriggerManager tests
  */
 const { StoredProcedure, StoredFunction, TriggerManager } = require('../../lib/orm/procedures');
 

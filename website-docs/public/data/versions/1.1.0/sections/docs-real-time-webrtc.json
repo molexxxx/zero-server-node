@@ -1074,7 +1074,7 @@
 					]
 				},
 				{
-					"group": "Targeted stats (Phase 2 surface; coarse stats() remains for back-compat)",
+					"group": "Targeted stats (coarse stats() remains for back-compat)",
 					"methods": [
 						{
 							"method": "getProducerStats",

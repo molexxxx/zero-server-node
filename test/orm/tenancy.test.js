@@ -1,5 +1,5 @@
 /**
- * Phase 4 - TenantManager tests
+ * TenantManager tests
  */
 const { Database, Model, TenantManager } = require('../../lib/orm');
 

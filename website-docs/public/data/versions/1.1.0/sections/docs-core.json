@@ -1287,10 +1287,10 @@
 								"type": "App",
 								"description": "`this` for chaining."
 							},
-							"example": "  app.jwt({ secret: process.env.JWT_SECRET });\r\n  app.jwt({ jwksUri: 'https://auth.example.com/.well-known/jwks.json' });",
+							"example": "  app.jwtAuth({ secret: process.env.JWT_SECRET });\r\n  app.jwtAuth({ jwksUri: 'https://auth.example.com/.well-known/jwks.json' });",
 							"examples": [
 								{
-									"code": "  app.jwt({ secret: process.env.JWT_SECRET });\r\n  app.jwt({ jwksUri: 'https://auth.example.com/.well-known/jwks.json' });",
+									"code": "  app.jwtAuth({ secret: process.env.JWT_SECRET });\r\n  app.jwtAuth({ jwksUri: 'https://auth.example.com/.well-known/jwks.json' });",
 									"lang": "javascript"
 								}
 							]

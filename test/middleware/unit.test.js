@@ -6,6 +6,7 @@ const crypto       = require('crypto');
 const fs        = require('fs');
 const path      = require('path');
 const os        = require('os');
+const { waitFor } = require('../_helpers');
 
 const { HttpError, isHttpError } = require('../../lib/errors');
 
@@ -1903,81 +1904,51 @@ describe('serveStatic middleware', () =>
         return res;
     }
 
-    it('serves index.html for root request', () =>
+    it('serves index.html for root request', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('serves a specific file', () =>
+    it('serves a specific file', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/data.json', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/data.json', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('calls next() for non-existent file', () =>
+    it('calls next() for non-existent file', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const next = vi.fn();
-            const req = makeReq({ method: 'GET', url: '/nope.xyz', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, next);
-            setTimeout(() =>
-            {
-                expect(next).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const next = vi.fn();
+        const req = makeReq({ method: 'GET', url: '/nope.xyz', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, next);
+        await waitFor(() => next.mock.calls.length > 0);
+        expect(next).toHaveBeenCalled();
     });
 
-    it('serves file via extension fallback', () =>
+    it('serves file via extension fallback', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/about', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir, { extensions: ['html'] })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/about', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir, { extensions: ['html'] })(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('calls next() when extension fallback also fails', () =>
+    it('calls next() when extension fallback also fails', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const next = vi.fn();
-            const req = makeReq({ method: 'GET', url: '/notexist', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir, { extensions: ['html'] })(req, res, next);
-            setTimeout(() =>
-            {
-                expect(next).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const next = vi.fn();
+        const req = makeReq({ method: 'GET', url: '/notexist', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir, { extensions: ['html'] })(req, res, next);
+        await waitFor(() => next.mock.calls.length > 0);
+        expect(next).toHaveBeenCalled();
     });
 
     it('blocks non-GET/HEAD methods', () =>
@@ -2002,19 +1973,13 @@ describe('serveStatic middleware', () =>
         expect(res._status).toBe(400);
     });
 
-    it('dotfiles default is ignore - calls next() for .hidden', () =>
+    it('dotfiles default is ignore - calls next() for .hidden', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const next = vi.fn();
-            const req = makeReq({ method: 'GET', url: '/.hidden', headers: {} });
-            serveStatic(tmpDir)(req, makeStaticRes(), next);
-            setTimeout(() =>
-            {
-                expect(next).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const next = vi.fn();
+        const req = makeReq({ method: 'GET', url: '/.hidden', headers: {} });
+        serveStatic(tmpDir)(req, makeStaticRes(), next);
+        await waitFor(() => next.mock.calls.length > 0);
+        expect(next).toHaveBeenCalled();
     });
 
     it('dotfiles:deny returns 403 for .hidden', () =>
@@ -2027,19 +1992,13 @@ describe('serveStatic middleware', () =>
         expect(res._status).toBe(403);
     });
 
-    it('dotfiles:allow serves .hidden file', () =>
+    it('dotfiles:allow serves .hidden file', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/.hidden', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir, { dotfiles: 'allow' })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/.hidden', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir, { dotfiles: 'allow' })(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
     it('HEAD request is handled (same as GET but no body)', () =>
@@ -2053,114 +2012,72 @@ describe('serveStatic middleware', () =>
         });
     });
 
-    it('custom setHeaders hook is called', () =>
+    it('custom setHeaders hook is called', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const setHeaders = vi.fn();
-            const req = makeReq({ method: 'GET', url: '/index.html', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir, { setHeaders })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(setHeaders).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const setHeaders = vi.fn();
+        const req = makeReq({ method: 'GET', url: '/index.html', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir, { setHeaders })(req, res, noop);
+        await waitFor(() => setHeaders.mock.calls.length > 0);
+        expect(setHeaders).toHaveBeenCalled();
     });
 
-    it('maxAge sets Cache-Control header', () =>
+    it('maxAge sets Cache-Control header', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/index.html', headers: {} });
-            const res = makeStaticRes();
-            serveStatic(tmpDir, { maxAge: 3600_000 })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw._headers['Cache-Control']).toContain('max-age=3600');
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/index.html', headers: {} });
+        const res = makeStaticRes();
+        serveStatic(tmpDir, { maxAge: 3600_000 })(req, res, noop);
+        await waitFor(() => String(res.raw._headers['Cache-Control'] ?? '').includes('max-age=3600'));
+        expect(res.raw._headers['Cache-Control']).toContain('max-age=3600');
     });
 
-    it('index:false - directory request calls next()', () =>
+    it('index:false - directory request calls next()', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const next = vi.fn();
-            const req = makeReq({ method: 'GET', url: '/', headers: {} });
-            serveStatic(tmpDir, { index: false })(req, makeStaticRes(), next);
-            setTimeout(() =>
-            {
-                expect(next).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const next = vi.fn();
+        const req = makeReq({ method: 'GET', url: '/', headers: {} });
+        serveStatic(tmpDir, { index: false })(req, makeStaticRes(), next);
+        await waitFor(() => next.mock.calls.length > 0);
+        expect(next).toHaveBeenCalled();
     });
 
-    it('serves 304 for matching ETag (If-None-Match)', () =>
+    it('serves 304 for matching ETag (If-None-Match)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const tmpFile = path.join(tmpDir, 'index.html');
-            const stat = fs.statSync(tmpFile);
-            const etag = 'W/"' + stat.size.toString(16) + '-' + stat.mtimeMs.toString(16) + '"';
-            const req = makeReq({ method: 'GET', url: '/index.html', headers: { 'if-none-match': etag } });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.statusCode).toBe(304);
-                resolve();
-            }, 50);
-        });
+        const tmpFile = path.join(tmpDir, 'index.html');
+        const stat = fs.statSync(tmpFile);
+        const etag = 'W/"' + stat.size.toString(16) + '-' + stat.mtimeMs.toString(16) + '"';
+        const req = makeReq({ method: 'GET', url: '/index.html', headers: { 'if-none-match': etag } });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, noop);
+        await waitFor(() => res.raw.statusCode === 304);
+        expect(res.raw.statusCode).toBe(304);
     });
 
-    it('invalid percent-encoded URL returns 400', () =>
+    it('invalid percent-encoded URL returns 400', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(makeReq({ method: 'GET', url: '/%ZZ', headers: {} }), res, noop);
-            setTimeout(() =>
-            {
-                expect(res._status).toBe(400);
-                resolve();
-            }, 50);
-        });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(makeReq({ method: 'GET', url: '/%ZZ', headers: {} }), res, noop);
+        await waitFor(() => res._status === 400);
+        expect(res._status).toBe(400);
     });
 
-    it('suffix range bytes=-N serves last N bytes (206)', () =>
+    it('suffix range bytes=-N serves last N bytes (206)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const rangeFile = path.join(tmpDir, 'range.txt');
-            fs.writeFileSync(rangeFile, '0123456789'); // 10 bytes
-            const req = makeReq({ method: 'GET', url: '/range.txt', headers: { range: 'bytes=-5' } });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.statusCode).toBe(206);
-                resolve();
-            }, 50);
-        });
+        const rangeFile = path.join(tmpDir, 'range.txt');
+        fs.writeFileSync(rangeFile, '0123456789'); // 10 bytes
+        const req = makeReq({ method: 'GET', url: '/range.txt', headers: { range: 'bytes=-5' } });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, noop);
+        await waitFor(() => res.raw.statusCode === 206);
+        expect(res.raw.statusCode).toBe(206);
     });
 
-    it('out-of-range request returns 416', () =>
+    it('out-of-range request returns 416', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/index.html', headers: { range: 'bytes=999999-999999' } });
-            const res = makeStaticRes();
-            serveStatic(tmpDir)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.statusCode).toBe(416);
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/index.html', headers: { range: 'bytes=999999-999999' } });
+        const res = makeStaticRes();
+        serveStatic(tmpDir)(req, res, noop);
+        await waitFor(() => res.raw.statusCode === 416);
+        expect(res.raw.statusCode).toBe(416);
     });
 });
 
@@ -2690,46 +2607,28 @@ describe('compress - additional encoding and streaming paths', () =>
         expect(raw._headers['Content-Encoding']).toBe('gzip');
     });
 
-    it('write() then end(chunk) - headersWritten=true path (L214 + L216)', () =>
+    it('write() then end(chunk) - headersWritten=true path (L214 + L216)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const mw = compress({ threshold: 0 });
-            const { raw, res, req } = makeCompressSetup3('gzip;q=1');
-            mw(req, res, vi.fn());
-            raw.setHeader('content-type', 'text/plain');
-            raw.write(Buffer.alloc(100, 'a'));
-            setTimeout(() =>
-            {
-                raw.end(Buffer.alloc(50, 'b'));
-                setTimeout(() =>
-                {
-                    expect(raw._headers['Content-Encoding']).toBe('gzip');
-                    resolve();
-                }, 30);
-            }, 10);
-        });
+        const mw = compress({ threshold: 0 });
+        const { raw, res, req } = makeCompressSetup3('gzip;q=1');
+        mw(req, res, vi.fn());
+        raw.setHeader('content-type', 'text/plain');
+        raw.write(Buffer.alloc(100, 'a'));
+        await new Promise(r => setTimeout(r, 10));
+        raw.end(Buffer.alloc(50, 'b'));
+        await waitFor(() => raw._headers['Content-Encoding'] === 'gzip');
     });
 
-    it('write() then end() no-chunk - L214 + L217 path', () =>
+    it('write() then end() no-chunk - L214 + L217 path', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const mw = compress({ threshold: 0 });
-            const { raw, res, req } = makeCompressSetup3('gzip;q=1');
-            mw(req, res, vi.fn());
-            raw.setHeader('content-type', 'text/plain');
-            raw.write(Buffer.alloc(100, 'a'));
-            setTimeout(() =>
-            {
-                raw.end();
-                setTimeout(() =>
-                {
-                    expect(raw._headers['Content-Encoding']).toBe('gzip');
-                    resolve();
-                }, 30);
-            }, 10);
-        });
+        const mw = compress({ threshold: 0 });
+        const { raw, res, req } = makeCompressSetup3('gzip;q=1');
+        mw(req, res, vi.fn());
+        raw.setHeader('content-type', 'text/plain');
+        raw.write(Buffer.alloc(100, 'a'));
+        await new Promise(r => setTimeout(r, 10));
+        raw.end();
+        await waitFor(() => raw._headers['Content-Encoding'] === 'gzip');
     });
 
     it('compression stream error triggers error handler (L166-168)', () =>
@@ -2808,18 +2707,12 @@ describe('serveStatic - additional path coverage', () =>
         return res;
     }
 
-    it('unknown extension falls back to application/octet-stream (L103 right side)', () =>
+    it('unknown extension falls back to application/octet-stream (L103 right side)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const res = makeXRes();
-            serveStatic(tmpDirX)(makeReq({ method: 'GET', url: '/data.xyz', headers: {} }), res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw._headers['Content-Type']).toBe('application/octet-stream');
-                resolve();
-            }, 50);
-        });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(makeReq({ method: 'GET', url: '/data.xyz', headers: {} }), res, noop);
+        await waitFor(() => res.raw._headers['Content-Type'] === 'application/octet-stream');
+        expect(res.raw._headers['Content-Type']).toBe('application/octet-stream');
     });
 
     it('empty file (size=0) skips Content-Length (L110 FALSE side)', () =>
@@ -2832,112 +2725,76 @@ describe('serveStatic - additional path coverage', () =>
         });
     });
 
-    it('If-Modified-Since future date - file not modified → 304 (L131 TRUE)', () =>
+    it('If-Modified-Since future date - file not modified → 304 (L131 TRUE)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            // Use a date well in the future so stat.mtimeMs <= since → 304
-            const futureDate = new Date(Date.now() + 86400000 * 365).toUTCString();
-            const req = makeReq({
-                method: 'GET', url: '/content.txt',
-                headers: { 'if-modified-since': futureDate },
-            });
-            const res = makeXRes();
-            serveStatic(tmpDirX)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.statusCode).toBe(304);
-                resolve();
-            }, 50);
+        // Use a date well in the future so stat.mtimeMs <= since → 304
+        const futureDate = new Date(Date.now() + 86400000 * 365).toUTCString();
+        const req = makeReq({
+            method: 'GET', url: '/content.txt',
+            headers: { 'if-modified-since': futureDate },
         });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(req, res, noop);
+        await waitFor(() => res.raw.statusCode === 304);
+        expect(res.raw.statusCode).toBe(304);
     });
 
-    it('If-Modified-Since very old date - file is newer, serve normally (L131 FALSE newer-file)', () =>
+    it('If-Modified-Since very old date - file is newer, serve normally (L131 FALSE newer-file)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            // File mtime >> epoch → stat.mtimeMs > since → no 304
-            const req = makeReq({
-                method: 'GET', url: '/content.txt',
-                headers: { 'if-modified-since': new Date(0).toUTCString() },
-            });
-            const res = makeXRes();
-            serveStatic(tmpDirX)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
+        // File mtime >> epoch → stat.mtimeMs > since → no 304
+        const req = makeReq({
+            method: 'GET', url: '/content.txt',
+            headers: { 'if-modified-since': new Date(0).toUTCString() },
         });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('If-Modified-Since with invalid date string - ignored (L131 FALSE NaN side)', () =>
+    it('If-Modified-Since with invalid date string - ignored (L131 FALSE NaN side)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({
-                method: 'GET', url: '/content.txt',
-                headers: { 'if-modified-since': 'this-is-not-a-date' },
-            });
-            const res = makeXRes();
-            serveStatic(tmpDirX)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
+        const req = makeReq({
+            method: 'GET', url: '/content.txt',
+            headers: { 'if-modified-since': 'this-is-not-a-date' },
         });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('range header not matching bytes regex - serves full file (L144 FALSE)', () =>
+    it('range header not matching bytes regex - serves full file (L144 FALSE)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({
-                method: 'GET', url: '/bytes.txt',
-                headers: { range: 'invalid-range' },
-            });
-            const res = makeXRes();
-            serveStatic(tmpDirX)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 150);
+        const req = makeReq({
+            method: 'GET', url: '/bytes.txt',
+            headers: { range: 'invalid-range' },
         });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
-    it('range bytes=N- (open-ended) uses stat.size-1 as end (L147 FALSE)', () =>
+    it('range bytes=N- (open-ended) uses stat.size-1 as end (L147 FALSE)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({
-                method: 'GET', url: '/bytes.txt',
-                headers: { range: 'bytes=2-' },
-            });
-            const res = makeXRes();
-            serveStatic(tmpDirX)(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.statusCode).toBe(206);
-                resolve();
-            }, 50);
+        const req = makeReq({
+            method: 'GET', url: '/bytes.txt',
+            headers: { range: 'bytes=2-' },
         });
+        const res = makeXRes();
+        serveStatic(tmpDirX)(req, res, noop);
+        await waitFor(() => res.raw.statusCode === 206);
+        expect(res.raw.statusCode).toBe(206);
     });
 
-    it('extensions with dot-prefixed entry uses it directly (L239 TRUE branch)', () =>
+    it('extensions with dot-prefixed entry uses it directly (L239 TRUE branch)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/page', headers: {} });
-            const res = makeXRes();
-            serveStatic(tmpDirX, { extensions: ['.html'] })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res.raw.write).toHaveBeenCalled();
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/page', headers: {} });
+        const res = makeXRes();
+        serveStatic(tmpDirX, { extensions: ['.html'] })(req, res, noop);
+        await waitFor(() => res.raw.write.mock.calls.length > 0);
+        expect(res.raw.write).toHaveBeenCalled();
     });
 
     it('dotfile from extension fallback with dotfiles:deny returns 403 (L245 TRUE - deny)', () =>
@@ -2982,19 +2839,13 @@ describe('serveStatic - additional path coverage', () =>
         });
     });
 
-    it('directory with dotfile index + dotfiles:deny returns 403 (L264)', () =>
+    it('directory with dotfile index + dotfiles:deny returns 403 (L264)', async () =>
     {
-        return new Promise((resolve) =>
-        {
-            const req = makeReq({ method: 'GET', url: '/dotidxdir/', headers: {} });
-            const res = makeXRes();
-            serveStatic(tmpDirX, { index: '.index.html', dotfiles: 'deny' })(req, res, noop);
-            setTimeout(() =>
-            {
-                expect(res._status).toBe(403);
-                resolve();
-            }, 50);
-        });
+        const req = makeReq({ method: 'GET', url: '/dotidxdir/', headers: {} });
+        const res = makeXRes();
+        serveStatic(tmpDirX, { index: '.index.html', dotfiles: 'deny' })(req, res, noop);
+        await waitFor(() => res._status === 403);
+        expect(res._status).toBe(403);
     });
 });
 

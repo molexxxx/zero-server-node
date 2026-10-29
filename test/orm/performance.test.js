@@ -928,10 +928,10 @@ describe('onReplica() - Replica Routing', () =>
 });
 
 // ============================================================
-//  Integration: Full Phase 2 Workflow
+//  Integration: Full performance workflow
 // ============================================================
 
-describe('Phase 2 Integration', () =>
+describe('Performance integration', () =>
 {
     it('should profile queries and detect N+1 in a real workflow', async () =>
     {

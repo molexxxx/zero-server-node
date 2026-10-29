@@ -11,12 +11,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/molexxxx/zero-server/actions/workflows/ci.yml"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-ci-zserver.svg?v=27778792" alt="CI"></a>
-  <a href="https://github.com/molexxxx/zero-server/actions"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-tests-zserver.svg?v=b659ef8d" alt="tests"></a>
-  <a href="https://github.com/molexxxx/zero-server"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-coverage-zserver.svg?v=d2449d60" alt="coverage"></a>
+  <a href="https://github.com/molexxxx/zero-server-node/actions/workflows/ci.yml"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-ci-zserver.svg?v=27778792" alt="CI"></a>
+  <a href="https://github.com/molexxxx/zero-server-node/actions"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-tests-zserver.svg?v=b659ef8d" alt="tests"></a>
+  <a href="https://github.com/molexxxx/zero-server-node"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-coverage-zserver.svg?v=d2449d60" alt="coverage"></a>
   <a href="https://z-server.dev"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-docs-zserver.svg?v=1055375c" alt="docs"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-license-zserver.svg?v=5122af14" alt="license"></a>
-  <a href="https://nodejs.org"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-node-zserver.svg?v=2f57d63f" alt="node >=18"></a>
+  <a href="https://nodejs.org"><img src="https://raw.githubusercontent.com/molexxxx/molexxxx/main/.github/badges/zero-server-node-zserver.svg?v=2f57d63f" alt="node >=20"></a>
 </p>
 
 > **Zero-dependency backend framework for Node.js - routing, ORM, auth, WebSocket, SSE, observability, and 20+ middleware as one SDK or focused scoped packages.**
@@ -35,7 +35,7 @@
 npm install @zero-server/sdk
 ```
 
-Requires Node.js 18+. No external dependencies - everything is built on Node.js core APIs.
+Requires Node.js 20+. No external dependencies - everything is built on Node.js core APIs.
 
 `@zero-server/sdk` is the recommended install - it re-exports the entire framework from a single import. Use it for new projects, demos, and most production apps.
 

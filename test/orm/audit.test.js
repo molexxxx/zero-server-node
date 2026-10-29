@@ -1,5 +1,5 @@
 /**
- * Phase 4 - AuditLog tests
+ * AuditLog tests
  */
 const { Database, Model, AuditLog } = require('../../lib/orm');
 

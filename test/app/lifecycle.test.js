@@ -1,6 +1,6 @@
 const http = require('http');
 const { createApp, LifecycleManager, LIFECYCLE_STATE, WebSocketPool, SSEStream } = require('../../');
-const { doFetch } = require('../_helpers');
+const { doFetch, waitFor } = require('../_helpers');
 
 // Helper: start app on random port and return { app, port, close }
 function startApp(app)
@@ -129,16 +129,14 @@ describe('Lifecycle Manager', () =>
             // Start request but don't await
             const reqPromise = doFetch(`http://localhost:${port}/slow`);
 
-            // Wait for request to be tracked
-            await new Promise(r => setTimeout(r, 50));
+            await waitFor(() => app._lifecycle.activeRequests === 1);
             expect(app._lifecycle.activeRequests).toBe(1);
 
             // Complete the request
             resolveHold();
             await reqPromise;
 
-            // Wait for close event
-            await new Promise(r => setTimeout(r, 50));
+            await waitFor(() => app._lifecycle.activeRequests === 0);
             expect(app._lifecycle.activeRequests).toBe(0);
 
             await safeClose(app);
@@ -161,12 +159,12 @@ describe('Lifecycle Manager', () =>
             const p2 = doFetch(`http://localhost:${port}/hold`);
             const p3 = doFetch(`http://localhost:${port}/hold`);
 
-            await new Promise(r => setTimeout(r, 50));
+            await waitFor(() => app._lifecycle.activeRequests === 3);
             expect(app._lifecycle.activeRequests).toBe(3);
 
             resolveAll();
             await Promise.all([p1, p2, p3]);
-            await new Promise(r => setTimeout(r, 50));
+            await waitFor(() => app._lifecycle.activeRequests === 0);
             expect(app._lifecycle.activeRequests).toBe(0);
 
             await safeClose(app);

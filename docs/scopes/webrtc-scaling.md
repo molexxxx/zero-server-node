@@ -46,7 +46,7 @@ const hub = createWebRTC(app, {
 });
 ```
 
-Available adapter methods (Phase 2 + 3 surface): `produce({ encodings, scalabilityMode })`, `setConsumerPreferredLayers`, `setConsumerPriority`, `requestKeyFrame`, `pauseConsumer/resumeConsumer`, `setTransportBitrates`, `produceData/consumeData`, `observeAudioLevels`, `observeActiveSpeaker`, `pipeToRouter`, `getProducerStats/getConsumerStats/getTransportStats`, `enableTraceEvent`.
+Available adapter methods: `produce({ encodings, scalabilityMode })`, `setConsumerPreferredLayers`, `setConsumerPriority`, `requestKeyFrame`, `pauseConsumer/resumeConsumer`, `setTransportBitrates`, `produceData/consumeData`, `observeAudioLevels`, `observeActiveSpeaker`, `pipeToRouter`, `getProducerStats/getConsumerStats/getTransportStats`, `enableTraceEvent`.
 
 LiveKit-equivalent surface: REST passthroughs (`getRoomInfo`, `listParticipants`, `removeParticipant`, `updateRoomMetadata`, `sendData`) + egress (`startRoomCompositeEgress`, `startTrackEgress`, `stopEgress`, `listEgress`) + ingress (`createIngress`, `deleteIngress`).
 

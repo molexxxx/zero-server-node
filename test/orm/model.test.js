@@ -998,7 +998,7 @@ describe('ORM JOINs', () =>
     });
 });
 
-// -- Extended Schema Types (Phase 9) --------------------------------
+// -- Extended Schema Types --------------------------------
 
 describe('Extended TYPES enum', () =>
 {

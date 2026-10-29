@@ -1,5 +1,5 @@
 /**
- * Phase 3 - DatabaseView tests
+ * DatabaseView tests
  */
 const { Database, Model, DatabaseView } = require('../../lib/orm');
 

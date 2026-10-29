@@ -1,5 +1,5 @@
 /**
- * Phase 4 - PluginManager tests
+ * PluginManager tests
  */
 const { PluginManager } = require('../../lib/orm/plugin');
 

@@ -1,5 +1,5 @@
 /**
- * Phase 3 - Model Events & Observers
+ * Model Events & Observers
  */
 const { Database, Model, TYPES } = require('../../lib/orm');
 

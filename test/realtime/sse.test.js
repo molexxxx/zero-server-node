@@ -405,27 +405,34 @@ describe('SSEStream Unit', () => {
     });
 
     // -- Keep-alive timer -------------------------------
-    it('keepAlive starts timer that sends comments', async () => {
-        const raw = fakeRaw();
-        const sse = new SSEStream(raw);
-        sse.keepAlive(30, 'heartbeat');
-        await new Promise(r => setTimeout(r, 80));
-        const pings = raw._written.filter(s => s.includes(': heartbeat'));
-        expect(pings.length).toBeGreaterThanOrEqual(2);
-        sse.close();
+    it('keepAlive starts timer that sends comments', () => {
+        vi.useFakeTimers();
+        try {
+            const raw = fakeRaw();
+            const sse = new SSEStream(raw);
+            sse.keepAlive(30, 'heartbeat');
+            vi.advanceTimersByTime(95);
+            const pings = raw._written.filter(s => s.includes(': heartbeat'));
+            expect(pings.length).toBe(3);
+            sse.close();
+        } finally { vi.useRealTimers(); }
     });
 
-    it('keepAlive(0) stops the timer', async () => {
-        const raw = fakeRaw();
-        const sse = new SSEStream(raw);
-        sse.keepAlive(20, 'tick');
-        await new Promise(r => setTimeout(r, 50));
-        sse.keepAlive(0);
-        const countAfterStop = raw._written.filter(s => s.includes(': tick')).length;
-        await new Promise(r => setTimeout(r, 50));
-        const countLater = raw._written.filter(s => s.includes(': tick')).length;
-        expect(countLater).toBe(countAfterStop);
-        sse.close();
+    it('keepAlive(0) stops the timer', () => {
+        vi.useFakeTimers();
+        try {
+            const raw = fakeRaw();
+            const sse = new SSEStream(raw);
+            sse.keepAlive(20, 'tick');
+            vi.advanceTimersByTime(50);
+            sse.keepAlive(0);
+            const countAfterStop = raw._written.filter(s => s.includes(': tick')).length;
+            expect(countAfterStop).toBe(2);
+            vi.advanceTimersByTime(100);
+            const countLater = raw._written.filter(s => s.includes(': tick')).length;
+            expect(countLater).toBe(countAfterStop);
+            sse.close();
+        } finally { vi.useRealTimers(); }
     });
 
     it('constructor keepAlive option starts timer', async () => {

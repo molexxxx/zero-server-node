@@ -201,7 +201,7 @@ export class CacheError extends HttpError {
     constructor(message?: string, opts?: CacheErrorOptions);
 }
 
-// --- Phase 4 Error Classes ------------------------------------------
+// --- ORM enterprise error classes ------------------------------------------
 
 export interface TenancyErrorOptions extends DatabaseErrorOptions {
     tenant?: string;

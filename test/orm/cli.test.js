@@ -1,5 +1,5 @@
 /**
- * Phase 4 - CLI tests
+ * CLI tests
  */
 const fs = require('fs');
 const path = require('path');

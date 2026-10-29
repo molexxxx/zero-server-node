@@ -214,7 +214,7 @@ export class Query {
     /** Returns the maximum value of a column. */
     max(field: string): Promise<any>;
 
-    // -- Performance / Scalability (Phase 2) -----------------
+    // -- Performance / Scalability -----------------
 
     /** Eager-count relationships without loading records. Adds `RelationName_count` fields. */
     withCount(...relations: string[]): Query;
@@ -428,7 +428,7 @@ export class Model {
     /** Get all descendants of this instance (breadth-first). */
     descendants(foreignKey?: string): Promise<Model[]>;
 
-    // -- Computed & Virtual Columns (Phase 3) -----------------
+    // -- Computed & Virtual Columns -----------------
 
     /** Computed column definitions: { name: (instance) => value }. */
     static computed: Record<string, (instance: Model) => any>;
@@ -444,7 +444,7 @@ export class Model {
     /** Set an attribute value with mutator/cast applied. */
     setAttribute(key: string, value: any): Model;
 
-    // -- Model Events (Phase 3) -------------------------------
+    // -- Model Events -------------------------------
 
     /** Listen for a model event. */
     static on(event: string, listener: (...args: any[]) => void): typeof Model;
@@ -455,7 +455,7 @@ export class Model {
     /** Remove all listeners for an event, or all listeners entirely. */
     static removeAllListeners(event?: string): typeof Model;
 
-    // -- Observers (Phase 3) ----------------------------------
+    // -- Observers ----------------------------------
 
     /** Register an observer object with lifecycle methods. */
     static observe(observer: Partial<ModelObserver>): typeof Model;
@@ -1067,7 +1067,7 @@ export class Database {
     /** Retry a function with exponential backoff. */
     retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
 
-    // -- Performance & Scalability (Phase 2) -----------------
+    // -- Performance & Scalability -----------------
 
     /** Enable query profiling on this database instance. */
     enableProfiling(options?: QueryProfilerOptions): QueryProfiler;
@@ -1569,7 +1569,7 @@ export class ReplicaManager {
     closeAll(): Promise<void>;
 }
 
-// --- Multi-Tenancy (Phase 4) ----------------------------------------
+// --- Multi-Tenancy ----------------------------------------
 
 export interface TenantManagerOptions {
     /** Tenancy strategy. */
@@ -1629,7 +1629,7 @@ export class TenantManager {
     migrateAll(migrator: Migrator): Promise<Map<string, MigrateResult>>;
 }
 
-// --- Audit Logging (Phase 4) ----------------------------------------
+// --- Audit Logging ----------------------------------------
 
 export interface AuditLogOptions {
     /** Table name for audit entries. */
@@ -1717,7 +1717,7 @@ export class AuditLog {
     middleware(options?: AuditMiddlewareOptions): (req: any, res: any, next: () => void) => void;
 }
 
-// --- Plugin System (Phase 4) ----------------------------------------
+// --- Plugin System ----------------------------------------
 
 export interface PluginDefinition {
     /** Unique plugin name. */
@@ -1774,7 +1774,7 @@ export class PluginManager {
     info(): PluginInfo[];
 }
 
-// --- Stored Procedures & Functions (Phase 4) ------------------------
+// --- Stored Procedures & Functions ------------------------
 
 export interface ProcedureParam {
     /** Parameter name. */

@@ -39,6 +39,7 @@ function wsConnect(portNum, wsPath, extraHeaders) {
 					upgraded = true;
 					const remaining = chunk.slice(chunk.indexOf(Buffer.from('\r\n\r\n')) + 4);
 					if (remaining.length > 0) parseFrames(remaining);
+					ready();
 				}
 				return;
 			}
@@ -74,7 +75,9 @@ function wsConnect(portNum, wsPath, extraHeaders) {
 			socket.write(Buffer.concat([header, mask, masked]));
 		}
 		socket.on('error', reject);
-		setTimeout(() => resolve({ socket, messages, sendWSFrame }), 150);
+		const ready = () => resolve({ socket, messages, sendWSFrame });
+		socket.on('close', ready);
+		setTimeout(ready, 5000);
 	});
 }
 

@@ -562,7 +562,7 @@ describe('Cross-driver feature matrix', () =>
 });
 
 // ===========================================================
-//  MySQL Adapter - _typeMap & Debug Methods (Phase 10)
+//  MySQL Adapter - _typeMap & Debug Methods
 // ===========================================================
 
 describe('MySQL adapter _typeMap', () =>
@@ -680,7 +680,7 @@ describe('MySQL adapter debug methods exist', () =>
 });
 
 // ===========================================================
-//  PostgreSQL Adapter - _typeMap & Debug Methods (Phase 10)
+//  PostgreSQL Adapter - _typeMap & Debug Methods
 // ===========================================================
 
 describe('PostgreSQL adapter _typeMap', () =>
